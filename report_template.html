@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Throughput Report</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>Throughput Report</h1>
+
+    <!-- Add the throughput data table -->
+    <h2>Throughput Data</h2>
+    {{ data|safe }}
+
+    <!-- Add the bandwidth graph -->
+    <br>
+    <h2>Bandwidth Graph</h2>
+    <img src="./bandwidth_graph.png" alt="Throughput Plot">
+
+</body>
+</html>
