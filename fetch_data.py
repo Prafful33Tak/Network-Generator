@@ -98,3 +98,5 @@ generate_graph(df)
 # Generate the HTML report
 generate_html_report(df)
 
+
+# netgen #
