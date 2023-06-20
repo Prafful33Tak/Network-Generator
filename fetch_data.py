@@ -1,5 +1,3 @@
-# fetch_data.py
-
 import pandas as pd
 import matplotlib.pyplot as plt
 from jinja2 import Environment, FileSystemLoader
@@ -48,24 +46,33 @@ def fetch_throughput_data(log_file):
 
 
 def generate_graph(df):
-    # Interval and bandwidth columns
+    # Interval, Transfer rate & Bandwidth columns
     interval = list(range(1, 1+len(df['Interval'])))
+
     bandwidth = [float(element) for element in df['Bandwidth']]
     band_unit = [str(element) for element in df['Band_unit']]
+
+    transfer_rate = [float(element) for element in df['Transfer']]
+    trans_unit = [str(element) for element in df['Trans_unit']]
+
+    # Converting MBytes to KBytes
+    transfer_rate = [rate * 1024 if trans_unit[i] == "MBytes" else rate for i, rate in enumerate(transfer_rate)]
 
     # Create a scatter plot of the 'Interval' and 'Bandwidth' columns
     plt.figure(figsize=(10, 6))
     plt.scatter(interval, bandwidth, label='Bandwidth in '+ band_unit[0])
+    plt.scatter(interval, transfer_rate, label='Transfer rate in '+ band_unit[0])
 
     # Draw a line joining the points
     plt.plot(interval, bandwidth, color='blue', linewidth=1, linestyle='--')
+    plt.plot(interval, transfer_rate, color='red', linewidth=1, linestyle='--')
 
     plt.xlabel('Interval')
-    plt.ylabel('Bandwidth')
-    plt.title('Bandwidth Over Time')
+    plt.ylabel('Transfer rate and Bandwidth')
+    plt.title('Transfer rate and Bandwidth Over Time')
     plt.legend()
     plt.grid(True)
-    plt.savefig('bandwidth_graph.png')
+    plt.savefig('transfer_bandwidth_graph.png')
 
 
 
