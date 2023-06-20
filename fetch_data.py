@@ -4,6 +4,8 @@ from jinja2 import Environment, FileSystemLoader
 import numpy as np
 
 
+
+# function to fetch the throughput data from the log file 
 def fetch_throughput_data(log_file):
     # Read the contents of the log file
     with open(log_file, 'r') as logfile:
@@ -45,6 +47,7 @@ def fetch_throughput_data(log_file):
 
 
 
+# function to generate the graph of Transfer rate & Bandwidth
 def generate_graph(df):
     # Interval, Transfer rate & Bandwidth columns
     interval = list(range(1, 1+len(df['Interval'])))
@@ -76,6 +79,50 @@ def generate_graph(df):
 
 
 
+# function to generate the cummulative graph of Transfer rate & Bandwidth
+def generate_cummulative_graph(df):
+    # Interval, Transfer rate & Bandwidth columns
+    interval = list(range(1, 1+len(df['Interval'])))
+
+    bandwidth = [float(element) for element in df['Bandwidth']]
+    band_unit = [str(element) for element in df['Band_unit']]
+
+    transfer_rate = [float(element) for element in df['Transfer']]
+    trans_unit = [str(element) for element in df['Trans_unit']]
+
+    # Converting MBytes to KBytes
+    transfer_rate = [rate * 1024 if trans_unit[i] == "MBytes" else rate for i, rate in enumerate(transfer_rate)]
+
+    # modifying transfer_rate & bandwidth s.t they contains the cummulative sum of transfer_rate & bandwidth
+    currTotalTransfer = 0
+    currTotalBandwidth = 0
+
+    for i in range(len(df['Interval'])):
+        currTotalTransfer += transfer_rate[i]
+        transfer_rate[i] = currTotalTransfer
+
+        currTotalBandwidth += bandwidth[i]
+        bandwidth[i] = currTotalBandwidth
+
+    # Create a scatter plot of the 'Interval' and 'Bandwidth' columns
+    plt.figure(figsize=(10, 6))
+    plt.scatter(interval, bandwidth, label='Bandwidth in '+ band_unit[0])
+    plt.scatter(interval, transfer_rate, label='Transfer rate in '+ band_unit[0])
+
+    # Draw a line joining the points
+    plt.plot(interval, bandwidth, color='blue', linewidth=1, linestyle='--')
+    plt.plot(interval, transfer_rate, color='red', linewidth=1, linestyle='--')
+
+    plt.xlabel('Interval')
+    plt.ylabel('Transfer rate and Bandwidth')
+    plt.title('Transfer rate and Bandwidth Over Time')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig('cummulative_transfer_bandwidth_graph.png')
+
+
+
+# function to generate the html report
 def generate_html_report(df):
     # Load the Jinja2 template
     env = Environment(loader=FileSystemLoader('.'))
@@ -101,6 +148,9 @@ df = fetch_throughput_data(log_file)
 
 # Generate the graph
 generate_graph(df)
+
+# Generate the cummulative graph
+generate_cummulative_graph(df)
 
 # Generate the HTML report
 generate_html_report(df)
