@@ -22,7 +22,7 @@ def run_netgen(args):
 
     try:
         # Redirect the output to log.txt
-        with open('log_R.txt', 'w') as logfile:
+        with open('log_test.txt', 'w') as logfile:
             result = subprocess.run(['./iperf3'] + iperf_command, stdout=logfile, stderr=subprocess.STDOUT)
         # print(result)
 

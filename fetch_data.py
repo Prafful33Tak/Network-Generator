@@ -25,13 +25,26 @@ def fetch_throughput_data(log_file):
 
     final_data = []
     num_cols = 0
+    flag = False
+
 
     for row in data:
         if row[0] == '-': 
+            continue
+        elif row[1] == 'ID]' and flag == False:
+            flag = True 
+        elif row[1] == 'ID]' and flag:
             break
-        elif (len(row) == 8 or len(row) == 9):
-            num_cols = len(row)
-            final_data.append(row)
+        elif (len(row) == 8 or len(row) == 9 or row[0] == '[SUM]'):
+            if row[0] == '[SUM]':
+                row.insert(0, ' ')
+                num_cols = len(row)
+                final_data.append(row)
+            else:
+                num_cols = len(row)
+                row[1] = '[' + row[1] 
+                final_data.append(row)
+
 
     # Create a DataFrame from the final separated data
     if num_cols == 8:
@@ -41,14 +54,14 @@ def fetch_throughput_data(log_file):
 
 
     # df = df.drop(['ID_temp', 'ID', 'Int_unit', 'Trans_unit', 'Band_unit'], axis=1) 
-    df = df.drop(['ID_temp', 'ID'], axis=1) 
+    df = df.drop(['ID_temp'], axis=1) 
 
     return df
 
 
 
 # function to generate the graph of Transfer rate & Bandwidth
-def generate_graph(df):
+def generate_graph(df, graph_name, group):
     # Interval, Transfer rate & Bandwidth columns
     interval = list(range(1, 1+len(df['Interval'])))
 
@@ -61,26 +74,23 @@ def generate_graph(df):
     # Converting MBytes to KBytes
     transfer_rate = [rate * 1024 if trans_unit[i] == "MBytes" else rate for i, rate in enumerate(transfer_rate)]
 
-    # Create a scatter plot of the 'Interval' and 'Bandwidth' columns
     plt.figure(figsize=(10, 6))
-    plt.scatter(interval, bandwidth, label='Bandwidth in '+ band_unit[0])
-    plt.scatter(interval, transfer_rate, label='Transfer rate in '+ band_unit[0])
 
     # Draw a line joining the points
-    plt.plot(interval, bandwidth, color='blue', linewidth=1, linestyle='--')
-    plt.plot(interval, transfer_rate, color='red', linewidth=1, linestyle='--')
+    plt.plot(interval, bandwidth, label='Bandwidth in '+ band_unit[0], color='blue', linewidth=1, linestyle='--')
+    plt.plot(interval, transfer_rate, label='Transfer rate in '+ band_unit[0], color='red', linewidth=1, linestyle='--')
 
     plt.xlabel('Interval')
     plt.ylabel('Transfer rate and Bandwidth')
-    plt.title('Transfer rate and Bandwidth Over Time')
+    plt.title('Transfer rate and Bandwidth over Time for ' + group)
     plt.legend()
     plt.grid(True)
-    plt.savefig('transfer_bandwidth_graph.png')
+    plt.savefig(graph_name)
 
 
 
 # function to generate the cummulative graph of Transfer rate & Bandwidth
-def generate_cummulative_graph(df):
+def generate_cummulative_graph(df, cummulative_graph_name, group):
     # Interval, Transfer rate & Bandwidth columns
     interval = list(range(1, 1+len(df['Interval'])))
 
@@ -104,53 +114,71 @@ def generate_cummulative_graph(df):
         currTotalBandwidth += bandwidth[i]
         bandwidth[i] = currTotalBandwidth
 
-    # Create a scatter plot of the 'Interval' and 'Bandwidth' columns
     plt.figure(figsize=(10, 6))
-    plt.scatter(interval, bandwidth, label='Bandwidth in '+ band_unit[0])
-    plt.scatter(interval, transfer_rate, label='Transfer rate in '+ band_unit[0])
 
     # Draw a line joining the points
-    plt.plot(interval, bandwidth, color='blue', linewidth=1, linestyle='--')
-    plt.plot(interval, transfer_rate, color='red', linewidth=1, linestyle='--')
+    plt.plot(interval, bandwidth, label='Bandwidth in '+ band_unit[0], color='blue', linewidth=1, linestyle='--')
+    plt.plot(interval, transfer_rate, label='Transfer rate in '+ band_unit[0], color='red', linewidth=1, linestyle='--')
 
     plt.xlabel('Interval')
     plt.ylabel('Transfer rate and Bandwidth')
-    plt.title('Transfer rate and Bandwidth Over Time')
+    plt.title('Cummulative Transfer rate and Bandwidth over Time for ' + group)
     plt.legend()
     plt.grid(True)
-    plt.savefig('cummulative_transfer_bandwidth_graph.png')
+    plt.savefig(cummulative_graph_name)
 
 
 
 # function to generate the html report
-def generate_html_report(df):
-    # Load the Jinja2 template
+def generate_html_report(df, graphs, cummulative_graphs):
+    # Render the HTML template with the data and graph names (Jinja2 template)
     env = Environment(loader=FileSystemLoader('.'))
-    template = env.get_template('./report_template.html')
+    template = env.get_template('report_template.html')
+    rendered_html = template.render(data=df.to_html(), graphs=graphs, cummulative_graphs=cummulative_graphs)
 
-    # Convert the DataFrame to an HTML table
-    table_html = df.to_html()
+    # Save the rendered HTML to a file
+    with open('throughput_report.html', 'w') as file:
+        file.write(rendered_html)
 
-    # Render the template with the throughput data
-    html = template.render(data=table_html)
 
-    # Save the HTML report to a file
-    with open('report.html', 'w') as file:
-        file.write(html)
+
+def segregate_dataframes(df):
+    # Segregate the dataframe based on ID
+    grouped = df.groupby('ID')
+
+    # Create dictionaries to store the graph names
+    graphs = {}
+    cummulative_graphs = {}
+
+    # Create a dictionary to store the segregated dataframes
+    segregated_dataframes = {}
+
+    # Iterate over the groups and store the segregated dataframes
+    for group, data in grouped:
+        segregated_dataframes[group] = data
+
+ 
+    # Iterate over the groups and generate graphs
+    for group, dataframe in segregated_dataframes.items():
+        graph_name = group + "_transfer_bandwidth_graph"
+        cummulative_graph_name = group + "_cummulative_transfer_bandwidth_graph"
+
+        generate_graph(dataframe, graph_name, group)
+        generate_cummulative_graph(dataframe, cummulative_graph_name, group)
+
+        graphs[group] = graph_name
+        cummulative_graphs[group] = cummulative_graph_name
+
+    # Generate the HTML report
+    generate_html_report(df, graphs, cummulative_graphs)
 
 
 
 # Specify the path to the log file
-log_file = './log.txt'
+log_file = './log_P.txt'
 
 # Fetch the throughput data
 df = fetch_throughput_data(log_file)
 
-# Generate the graph
-generate_graph(df)
-
-# Generate the cummulative graph
-generate_cummulative_graph(df)
-
-# Generate the HTML report
-generate_html_report(df)
+# Segregate the dataframes based on ID's and generate report
+segregate_dataframes(df)
