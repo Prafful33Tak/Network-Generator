@@ -22,6 +22,36 @@
     <h2>Throughput Data</h2>
     {{ data|safe }}
 
+    <!-- Add statistical analysis -->
+    <h2>Statistical Analysis</h2>
+    <table>
+        <tr>
+            <th>Statistics</th>
+            <th>Transfer Rate (in KBytes)</th>
+            <th>Bandwidth (in KBytes/sec)</th>
+        </tr>
+        <tr>
+            <td>Mean</td>
+            <td>{{ mean_transfer_rate }}</td>
+            <td>{{ mean_bandwidth }}</td>
+        </tr>
+        <tr>
+            <td>Median</td>
+            <td>{{ median_transfer_rate }}</td>
+            <td>{{ median_bandwidth }}</td>
+        </tr>
+        <tr>
+            <td>Standard Deviation</td>
+            <td>{{ std_dev_transfer_rate }}</td>
+            <td>{{ std_dev_bandwidth }}</td>
+        </tr>
+        <tr>
+            <td>90th Percentile</td>
+            <td>{{ percentile_90_transfer_rate }}</td>
+            <td>{{ percentile_90_bandwidth }}</td>
+        </tr>
+    </table>
+    
     <!-- Add the transfer rate & bandwidth graphs -->
     {% for group, graph_name in graphs.items() %}
     <br>

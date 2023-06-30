@@ -2,6 +2,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from jinja2 import Environment, FileSystemLoader
 import numpy as np
+import statistics
+
 
 
 
@@ -130,15 +132,32 @@ def generate_cummulative_graph(df, cummulative_graph_name, group):
 
 
 # function to generate the html report
-def generate_html_report(df, graphs, cummulative_graphs):
-    # Render the HTML template with the data and graph names (Jinja2 template)
+def generate_html_report(df, graphs, cummulative_graphs, transfer_rate, bandwidth):
+    # Calculate statistical measures
+    mean_transfer_rate, median_transfer_rate, std_dev_transfer_rate, percentile_90_transfer_rate = calculate_statistics(transfer_rate)
+    mean_bandwidth, median_bandwidth, std_dev_bandwidth, percentile_90_bandwidth = calculate_statistics(bandwidth)
+
+    # Render the HTML template with the data, graphs, and statistical measures
     env = Environment(loader=FileSystemLoader('.'))
     template = env.get_template('report_template.html')
-    rendered_html = template.render(data=df.to_html(), graphs=graphs, cummulative_graphs=cummulative_graphs)
+    rendered_html = template.render(
+        data=df.to_html(),
+        graphs=graphs,
+        cummulative_graphs=cummulative_graphs,
+        mean_transfer_rate=mean_transfer_rate,
+        mean_bandwidth=mean_bandwidth,
+        median_transfer_rate=median_transfer_rate,
+        median_bandwidth=median_bandwidth,
+        std_dev_transfer_rate=std_dev_transfer_rate,
+        std_dev_bandwidth=std_dev_bandwidth,
+        percentile_90_transfer_rate=percentile_90_transfer_rate,
+        percentile_90_bandwidth=percentile_90_bandwidth
+    )
 
     # Save the rendered HTML to a file
     with open('throughput_report.html', 'w') as file:
         file.write(rendered_html)
+
 
 
 
@@ -169,16 +188,51 @@ def segregate_dataframes(df):
         graphs[group] = graph_name
         cummulative_graphs[group] = cummulative_graph_name
 
-    # Generate the HTML report
-    generate_html_report(df, graphs, cummulative_graphs)
+    return graphs, cummulative_graphs
+
+
+
+# function to Calculate statistical measures of the throughput data
+def calculate_statistics(data):
+    # Calculate statistical measures (mean, median, standard deviation, 90th percentile)
+    mean = round(statistics.mean(data), 2)
+    median = round(statistics.median(data), 2)
+    std_dev = round(statistics.stdev(data), 2)
+    percentile_90 = round(np.percentile(data, 90), 2)
+
+    return mean, median, std_dev, percentile_90
+
+
+
+# function for unit conversion of transfer rate and bandwidth
+def convert_units(df):
+    bandwidth = [float(element) for element in df['Bandwidth']]
+    band_unit = [str(element) for element in df['Band_unit']]
+
+    transfer_rate = [float(element) for element in df['Transfer']]
+    trans_unit = [str(element) for element in df['Trans_unit']]
+
+    # Converting MBytes to KBytes
+    transfer_rate = [rate * 1024 if trans_unit[i] == "MBytes" else rate for i, rate in enumerate(transfer_rate)]
+
+    return transfer_rate, bandwidth
 
 
 
 # Specify the path to the log file
-log_file = './log_P.txt'
+log_file = './log.txt'
 
 # Fetch the throughput data
 df = fetch_throughput_data(log_file)
 
+# unit conversion
+transfer_rate, bandwidth = convert_units(df)
+
 # Segregate the dataframes based on ID's and generate report
-segregate_dataframes(df)
+graphs, cummulative_graphs = segregate_dataframes(df)
+
+# generate html report
+generate_html_report(df, graphs, cummulative_graphs, transfer_rate, bandwidth)
+
+
+
