@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Throughput Report</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>Throughput Report</h1>
+
+    <!-- Add the throughput data table -->
+    <h2>Throughput Data</h2>
+    {{ data|safe }}
+
+    <!-- Add statistical analysis -->
+    <h2>Statistical Analysis</h2>
+    <table>
+        <tr>
+            <th>Statistics</th>
+            <th>Transfer (in KBytes)</th>
+            <th>Bandwidth (in KBytes/sec)</th>
+        </tr>
+        <tr>
+            <td>Mean</td>
+            <td>{{ mean_transfer }}</td>
+            <td>{{ mean_bandwidth }}</td>
+        </tr>
+        <tr>
+            <td>Median</td>
+            <td>{{ median_transfer }}</td>
+            <td>{{ median_bandwidth }}</td>
+        </tr>
+        <tr>
+            <td>Standard Deviation</td>
+            <td>{{ std_dev_transfer }}</td>
+            <td>{{ std_dev_bandwidth }}</td>
+        </tr>
+        <tr>
+            <td>90th Percentile</td>
+            <td>{{ percentile_90_transfer }}</td>
+            <td>{{ percentile_90_bandwidth }}</td>
+        </tr>
+    </table>
+    
+    <!-- Add the transfer rate & bandwidth graphs -->
+    {% for group, graph_name in graphs.items() %}
+    <br>
+    <h2>{{ group }}: Transfer and Bandwidth Graph</h2>
+    <img src="{{ graph_name }}.png" alt="Throughput Plot">
+    {% endfor %}
+
+    <!-- Add the transfer & bandwidth cummulative graphs -->
+    {% for group, graph_name in cumulative_graphs.items() %}
+    <br>
+    <h2>{{ group }}: Transfer and Bandwidth Cumulative Graph</h2>
+    <img src="{{ graph_name }}.png" alt="Throughput Plot">
+    {% endfor %}
+
+</body>
+</html>

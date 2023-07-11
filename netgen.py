@@ -2,19 +2,16 @@
 
 import sys
 import subprocess
-# import fetch_data
 
 
-def run_netgen(args):
-    # print(args)
-
+# Function to run the iperf command
+def run_iperf_command(iperf_command: list) -> None:
     # Check if the command is valid
-    if len(args) < 2 or args[0] != './netgen.py':
+    if len(iperf_command) < 2 or iperf_command[0] != './netgen.py':
         raise ValueError('Invalid command')
 
     # Extract the iperf3 command from the input
-    iperf_command = args[1:]
-    # print(iperf_command)
+    iperf_command = iperf_command[1:]
 
     # Check if the iperf3 command is valid
     if not is_iperf_command_valid(iperf_command):
@@ -22,16 +19,23 @@ def run_netgen(args):
 
     try:
         # Redirect the output to log.txt
-        with open('log_test.txt', 'w') as logfile:
+        with open('log_1700_5_30.txt', 'w') as logfile:
             result = subprocess.run(['./iperf3'] + iperf_command, stdout=logfile, stderr=subprocess.STDOUT)
-        # print(result)
 
+    except subprocess.CalledProcessError as e:
+        print('An error occurred:', str(e))
+        sys.exit(1)
+    except OSError as e:
+        print('An error occurred while executing the iperf3 command:', str(e))
+        sys.exit(1)
     except Exception as e:
         print('An error occurred:', str(e))
         sys.exit(1)
 
 
-def is_iperf_command_valid(iperf_command):
+
+# Function to check if the iperf3 command is valid or not
+def is_iperf_command_valid(iperf_command: list) -> bool:
     valid_options = [
         '-c', '-s', '-p', '-u', '-t', '-i', '-f', '-P', '-R', '-w', '-C', '-n', '-b', '-k', '-l', '-L', '-V', '-Z',
         '--bind', '--client', '--server', '--port', '--udp', '--time', '--interval', '--format', '--parallel', '--reverse',
@@ -59,7 +63,7 @@ def is_iperf_command_valid(iperf_command):
 
 if __name__ == '__main__':
     try:
-        run_netgen(sys.argv[:])
+        run_iperf_command(sys.argv[:])
     except ValueError as e:
-        print(str(e))
+        print('Error:', str(e))
         sys.exit(1)
