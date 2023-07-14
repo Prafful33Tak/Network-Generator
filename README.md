@@ -47,6 +47,9 @@ This project is a `network traffic generator` that uses `iperf3` to execute comm
 - `netgen.py`: The main script for running iperf3 commands and generating network traffic.
 - `throughput_analysis.py`: Script for parsing iperf3 log files, generating throughput graphs, calculating statistical measures, and generating a throughput report.
 - `throughput_report_template.html`: HTML template used for generating the final throughput report.
+- Please refer the below attached structure of the NETGEN before running it.
+- ![Structure_of_NETGEN](https://github.com/Prafful33Tak/Network-Generator/assets/88709400/639338d5-fa77-4ae8-8a43-7b0ad137aac2)
+
 
 
 ## Customization
