@@ -7,7 +7,7 @@ This project is a `network traffic generator` that uses `iperf3` to execute comm
 
 - Python 3.x
 - iperf3 (installed and accessible from the command line)
-- Dependencies: pandas, matplotlib, jinja2 (can be installed using pip)
+- Dependencies: pandas, matplotlib, and Jinja2 (can be installed using pip)
 
 
 ## Installation
@@ -15,17 +15,19 @@ This project is a `network traffic generator` that uses `iperf3` to execute comm
 1. Clone the repository or download the code files into a directory.
 
 2. Make sure iperf3 is present in the same directory as the other files.
-
-3. Install the Python dependencies by running the following command : `pip install pandas matplotlib jinja2`
+   
+3. Make sure log_files folder is present in the same directory
+   
+4. Install the Python dependencies by running the following command: `pip install pandas matplotlib jinja2`
 
 
 ## Usage
 
 1. Open a terminal or command prompt and navigate to the project directory.
 
-2. Execute the network traffic generator script by running the following command : `python netgen.py <iperf3 command>`.
+2. Execute the network traffic generator script by running the following command: `python netgen.py <iperf3 command>`.
 - Replace `<iperf3 command>` with the desired iperf3 command and its arguments.
-- For example : `python netgen.py -c <server_ip> -t 10`.
+- For example: `python netgen.py -c <server_ip> -t 10`.
 - This will run the iperf3 command specified and save the output in the `log_files/log.txt` file.
 
 3. Run the throughput analysis script by executing the following command : `python throughput_analysis.py`.
