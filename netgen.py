@@ -7,7 +7,7 @@ import subprocess
 # Function to run the iperf command
 def run_iperf_command(iperf_command: list) -> None:
     # Check if the command is valid
-    if len(iperf_command) < 2 or iperf_command[0] != './netgen.py':
+    if len(iperf_command) < 2 or iperf_command[0] != 'netgen.py':
         raise ValueError('Invalid command')
 
     # Extract the iperf3 command from the input
@@ -16,10 +16,10 @@ def run_iperf_command(iperf_command: list) -> None:
     # Check if the iperf3 command is valid
     if not is_iperf_command_valid(iperf_command):
         raise ValueError('Invalid iperf3 command')
-
+    
     try:
         # Redirect the output to log.txt
-        with open('log_1700_5_30.txt', 'w') as logfile:
+        with open('log_file/log.txt', 'w') as logfile:
             result = subprocess.run(['./iperf3'] + iperf_command, stdout=logfile, stderr=subprocess.STDOUT)
 
     except subprocess.CalledProcessError as e:

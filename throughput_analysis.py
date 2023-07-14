@@ -64,10 +64,26 @@ def convert_units(df: pd.DataFrame) -> tuple:
     transfer = [float(element) for element in df['Transfer']]
     transfer_unit = [str(element) for element in df['Transfer_unit']]
 
-    # Converting  MBytes or GBytes to KBytes (to make sure that Transfer & Bandwidth have same units)
-    transfer = [rate * 1024 if transfer_unit[i] == "MBytes" else rate * 1024 * 1024 if transfer_unit[i] == "GBytes" else rate for i, rate in enumerate(transfer)]
+    conversion_factors = {
+        "Bytes/sec": 1 / 1024,
+        "KBytes/sec": 1,
+        "MBytes/sec": 1024,
+        "GBytes/sec": 1024 * 1024,
+        "Bits/sec": 1 / 8 / 1024,
+        "Kbits/sec": 1 / 8,
+        "Mbits/sec": 1024 / 8,
+        "Gbits/sec": 1024 * 1024 / 8,
+        "Bytes": 1 / 1024,
+        "KBytes": 1,
+        "MBytes": 1024,
+        "GBytes": 1024 * 1024
+    }
 
-    return transfer, bandwidth, bandwidth_unit[0]
+    # Converting all units to KBytes (to make sure that Transfer & Bandwidth have same units)
+    bandwidth = [rate * conversion_factors.get(bandwidth_unit[i], 1) for i, rate in enumerate(bandwidth)]
+    transfer = [rate * conversion_factors.get(transfer_unit[i], 1) for i, rate in enumerate(transfer)]
+
+    return transfer, bandwidth, "KBytes"
 
 
 
@@ -133,23 +149,25 @@ def generate_segregated_graphs(df: pd.DataFrame) -> tuple:
 # Function to calculate statistical measures of the throughput data
 def calculate_statistics(data: list) -> tuple:
     if not data:
-        return None, None, None, None
+        return None, None, None, None, None, None
 
-    # Calculate statistical measures (mean, median, standard deviation, 90th percentile)
+    # Calculate statistical measures (mean, median, standard deviation, 90th percentile, maximum, minimum)
     mean = round(statistics.mean(data), 2)
     median = round(statistics.median(data), 2)
     std_dev = round(statistics.stdev(data), 2)
     percentile_90 = round(np.percentile(data, 90), 2)
+    maximum = round(np.max(data), 2)
+    minimum = round(np.min(data), 2)
 
-    return mean, median, std_dev, percentile_90
+    return mean, median, std_dev, percentile_90, maximum, minimum
 
 
 
 # Function to generate the throughput report
 def generate_throughput_report(df: pd.DataFrame, graphs: list, cumulative_graphs: list, transfer: list, bandwidth: list) -> None:
     # Calculate statistical measures
-    mean_transfer, median_transfer, std_dev_transfer, percentile_90_transfer = calculate_statistics(transfer)
-    mean_bandwidth, median_bandwidth, std_dev_bandwidth, percentile_90_bandwidth = calculate_statistics(bandwidth)
+    mean_transfer, median_transfer, std_dev_transfer, percentile_90_transfer, max_transfer, min_transfer = calculate_statistics(transfer)
+    mean_bandwidth, median_bandwidth, std_dev_bandwidth, percentile_90_bandwidth, max_bandwidth, min_bandwidth = calculate_statistics(bandwidth)
 
     # Render the HTML template with the data, graphs, and statistical measures
     env = Environment(loader=FileSystemLoader('.'))     # Set the path to the directory containing templates
@@ -165,7 +183,11 @@ def generate_throughput_report(df: pd.DataFrame, graphs: list, cumulative_graphs
         std_dev_transfer=std_dev_transfer,
         std_dev_bandwidth=std_dev_bandwidth,
         percentile_90_transfer=percentile_90_transfer,
-        percentile_90_bandwidth=percentile_90_bandwidth
+        percentile_90_bandwidth=percentile_90_bandwidth,
+        max_transfer=max_transfer,
+        max_bandwidth=max_bandwidth,
+        min_transfer=min_transfer,
+        min_bandwidth=min_bandwidth
     )
 
     # Save the rendered HTML to a file
@@ -175,7 +197,7 @@ def generate_throughput_report(df: pd.DataFrame, graphs: list, cumulative_graphs
 
 
 # Specify the path to the log file
-log_file = './log_P.txt'
+log_file = "log_files/log.txt"
 
 # Fetch the throughput data
 df = parse_iperf_log(log_file)
