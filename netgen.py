@@ -19,7 +19,7 @@ def run_iperf_command(iperf_command: list) -> None:
     
     try:
         # Redirect the output to log.txt
-        with open('log_file/log.txt', 'w') as logfile:
+        with open('log_files/log.txt', 'w') as logfile:
             result = subprocess.run(['./iperf3'] + iperf_command, stdout=logfile, stderr=subprocess.STDOUT)
 
     except subprocess.CalledProcessError as e:
